@@ -8,10 +8,10 @@ This project involves designing and working with a relational database. It cover
 
 I used technologies like:
 
--SELECT, INSERT, DELETE, CREATE TABLE/VIEW/TRIGGER/FUNCTION/PROCEDURE;
--JOINs, UNION;
--WHERE;
--ORDER BY, GROUP BY.
+- SELECT, INSERT, DELETE, CREATE TABLE/VIEW/TRIGGER/FUNCTION/PROCEDURE;
+- JOINs, UNION;
+- WHERE;
+- ORDER BY, GROUP BY.
 
 # What I learnt
 
