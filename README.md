@@ -8,11 +8,11 @@ This project involves designing and working with a relational database. It cover
 
 I used technologies like:
 
-SELECT, INSERT, DELETE, CREATE TABLE/VIEW/TRIGGER/FUNCTION/PROCEDURE;
-JOINs, UNION;
-WHERE;
-ORDER BY, GROUP BY.
+-SELECT, INSERT, DELETE, CREATE TABLE/VIEW/TRIGGER/FUNCTION/PROCEDURE;
+-JOINs, UNION;
+-WHERE;
+-ORDER BY, GROUP BY.
 
-# what I learnt
+# What I learnt
 
 This project helped me turn theory into practice using SQL queries and language PL/PgSQL. In addition, I studied PostgreSQL in practice. 
