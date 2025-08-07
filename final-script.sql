@@ -1,98 +1,104 @@
---sequences
-DROP SEQUENCE IF EXISTS prac_id_od100;
-CREATE SEQUENCE prac_id_od100
+--sequences for triggers
+DROP SEQUENCE IF EXISTS empl_id_od100;
+CREATE SEQUENCE empl_id_od100
 INCREMENT 1
 START 100;
 
-DROP SEQUENCE IF EXISTS cislo_obj_tura;
-CREATE SEQUENCE cislo_obj_tura
+DROP SEQUENCE IF EXISTS order_num_tours;
+CREATE SEQUENCE order_num_tours
 INCREMENT 1
 START 100;
 
-DROP SEQUENCE IF EXISTS cislo_obj_platba;
-CREATE SEQUENCE cislo_obj_platba
+DROP SEQUENCE IF EXISTS order_num_payments;
+CREATE SEQUENCE order_num_payments
 INCREMENT 1
 START 100;
 
 --creating tables
-DROP TABLE IF EXISTS zakaznik CASCADE;
 
-CREATE TABLE zakaznik (
-    meno varchar(50) not null,
-    priezvisko varchar(100) not null,
-    telefon int not null unique,
+--table Clients
+DROP TABLE IF EXISTS clients CASCADE;
+
+CREATE TABLE clients (
+    name varchar(50) not null,
+    surname varchar(100) not null,
+    phone int not null unique,
     email varchar(50) not null unique,
-    datum_narodenia date not null,
-    datum_prveho_nakupu date,
-    poistenie varchar(30),
-    kde_sa_dozvedel_onas varchar(150),
-    cislo_dokladu varchar(20),
-    obcianstvo varchar(150) not null,
-    primary key (cislo_dokladu)
+    birthday date not null,
+    date_first_purchase date,
+    insurance varchar(30),
+    how_heard_about_us varchar(150),
+    document_number varchar(20),
+    citizenship varchar(150) not null,
+    primary key (document_number)
 );
 
-DROP TABLE IF EXISTS oddelenie CASCADE;
+--table Departments
+DROP TABLE IF EXISTS departments CASCADE;
 
-CREATE TABLE oddelenie (
-    meno_riaditela varchar(50) not null,
-    priezvisko_riaditela varchar(100) not null,
-    telefon_riaditela int not null unique,
-    email_riaditela varchar(50) not null unique,
-    kolko_zamestnancov int not null,
-    id_pracoviska int,
-    nazov_oddelenia varchar(500) not null unique,
-    primary key (id_pracoviska)
+CREATE TABLE departments (
+    name_dir varchar(50) not null,
+    surname_dir varchar(100) not null,
+    phone_dir int not null unique,
+    email_dir varchar(50) not null unique,
+    how_many_employees int not null,
+    department_id int,
+    department_name varchar(500) not null unique,
+    primary key (department_id)
 );
 
-DROP TABLE IF EXISTS zamestnanec CASCADE;
+--table Employees
+DROP TABLE IF EXISTS employees CASCADE;
 
-CREATE TABLE zamestnanec (
-    meno varchar(50) not null,
-    priezvisko varchar(100) not null,
-    pozicia varchar(100) not null,
-    telefon int not null unique,
+CREATE TABLE employees (
+    name varchar(50) not null,
+    surname varchar(100) not null,
+    position varchar(100) not null,
+    phone int not null unique,
     email varchar(50) not null unique,
-    ID_zamestnanca int,
-    ID_pracoviska int not null,
-    vzdelanie varchar(500),
-    kedy_nastupil_doprace date not null,
-    mesacny_plat float not null,
-    ma_deti char(5),
-    primary key (ID_zamestnanca),
-    foreign key (ID_pracoviska) references oddelenie(ID_pracoviska)
+    employe_id int,
+    department_id int not null,
+    degree varchar(500),
+    date_employment date not null,
+    salary float not null,
+    children char(5),
+    primary key (employe_id),
+    foreign key (department_id) references departments(department_id)
 );
 
-DROP TABLE IF EXISTS tura CASCADE;
+--table Tours
+DROP TABLE IF EXISTS tours CASCADE;
 
-CREATE TABLE tura (
-    cislo_objednavky INT,
-    datum_odchoda date not null,
-    typ_dopravy varchar(100) not null,
-    kde_je_start varchar(100) not null,
-    kam varchar(100) not null,
-    typ_cestovania varchar(100),
-    typ_ubytovania varchar(100),
-    kolko_dni INT not null,
-    cislo_dokladu_zakaznika varchar(20) not null,
-    ID_zamestnanca int not null,
-    primary key (cislo_objednavky),
-    foreign key (cislo_dokladu_zakaznika) references zakaznik(cislo_dokladu),
-    foreign key (ID_zamestnanca) references zamestnanec(ID_zamestnanca)
+CREATE TABLE tours (
+    order_number INT,
+    departure_day date not null,
+    transport_type varchar(100) not null,
+    starting_location varchar(100) not null,
+    journey_to varchar(100) not null,
+    travelling_type varchar(100),
+    accomodation_type varchar(100),
+    how_many_days INT not null,
+    client_doc_number varchar(20) not null,
+    employe_id int not null,
+    primary key (order_number),
+    foreign key (client_doc_number) references clients(document_number),
+    foreign key (employe_id) references employees(employe_id)
 );
 
-DROP TABLE IF EXISTS platba CASCADE;
+--table Payments
+DROP TABLE IF EXISTS payments CASCADE;
 
-CREATE TABLE platba (
-    cislo_platby int,
-    datum_platby date not null,
-    typ_platby varchar(50) not null,
-    sum float not null,
-    cislo_objednavky int not null unique,
-    bonusy_akcie varchar(100),
-    cislo_darcekoveho_preukazu int unique,
-    cislo_karty_IBAN varchar(100),
-    primary key (cislo_platby),
-    foreign key (cislo_objednavky) references tura(cislo_objednavky)
+CREATE TABLE payments (
+    payment_id int,
+    payment_date date not null,
+    payment_type varchar(50) not null,
+    total float not null,
+    order_number int not null unique,
+    special_offers varchar(100),
+    gift_card_num int unique,
+    iban varchar(100),
+    primary key (payment_id),
+    foreign key (order_number) references tours(order_number)
 );
 
 --triggers autoincrements
@@ -217,6 +223,7 @@ VALUES
     (1256, '2025-01-23', 'bankovska karta', 850.75,   NULL, NULL, 'SK68 7500 0000 0012 3456 7892'),
     (21685, '2025-02-01', 'hotovost', 500,  '-10% na narodeniny', NULL, NUll);
 
+--function
 CREATE OR REPLACE FUNCTION changeDokuments()
     RETURNS TRIGGER
     AS $$
@@ -235,11 +242,15 @@ AFTER UPDATE OF cislo_dokladu ON zakaznik
 FOR EACH ROW
 EXECUTE FUNCTION changeDokuments();
 
+--creating views
+
+--this view shows who doesn't have any insurances
 CREATE VIEW bez_poistenia AS
     SELECT meno, priezvisko, email
     FROM zakaznik
     WHERE poistenie IS NULL;
 
+--function
 CREATE OR REPLACE FUNCTION changeEmailsBezPoistenia()
     RETURNS TRIGGER
     AS $$
@@ -258,11 +269,13 @@ INSTEAD OF UPDATE ON bez_poistenia
 FOR EACH ROW
 EXECUTE FUNCTION changeEmailsBezPoistenia();
 
+--this view shows how many days Samuel Novakov works in this company and his salary
 CREATE VIEW samuel_novakov AS
     SELECT CONCAT (meno, ' ', priezvisko) AS "Meno", (CURRENT_DATE-zamestnanec.kedy_nastupil_doprace) AS "Dni pracovania", zamestnanec.mesacny_plat AS "Plat"
     FROM zamestnanec
     WHERE meno = 'Samuel' AND priezvisko = 'Novakov';
 
+--this view shows who sold a trip to Amerika
 CREATE VIEW kto_predal_cestu_doAmeriky AS
     SELECT meno AS "Meno pracovnika", priezvisko AS "Priezvisko pracovnika", email AS "email pracovnika", sum AS "Sum predaja"
     FROM zamestnanec
@@ -270,28 +283,33 @@ CREATE VIEW kto_predal_cestu_doAmeriky AS
     JOIN platba p on t.cislo_objednavky = p.cislo_objednavky
     WHERE kam = 'Amerika';
 
+--this view shows where people, who paid by the gift card, go
 CREATE VIEW darcekovy_preukaz AS
     SELECT cislo_dokladu_zakaznika AS "Doklad" ,kam AS "Kam", sum AS "Price"
     FROM tura
     JOIN platba p on tura.cislo_objednavky = p.cislo_objednavky
     WHERE p.cislo_darcekoveho_preukazu IS NOT NULL;
 
+--this view shows all employees and the trips they sold (if any)
 CREATE VIEW pracovnici_predaj AS
     SELECT meno,priezvisko, cislo_objednavky, kam
     FROM zamestnanec
     LEFT JOIN tura t on zamestnanec.ID_zamestnanca = t.ID_zamestnanca;
 
+--this view shows sales total by year
 CREATE VIEW sum_roky AS
     SELECT EXTRACT (YEAR from datum_platby) AS "Year", SUM(platba.sum)
     FROM platba
     GROUP BY "Year";
 
+--this view shows sales total by month
 CREATE VIEW mesiac_platby AS
     SELECT EXTRACT(MONTH FROM datum_platby) AS "Mesiac", SUM(sum) AS "Sum"
     FROM platba
     GROUP BY EXTRACT(MONTH FROM datum_platby)
     ORDER BY "Sum" DESC;
 
+--this view shows all employees with their contacts
 CREATE VIEW allEmployees AS
     SELECT CONCAT(meno_riaditela, ' ', priezvisko_riaditela) AS "Meno", 'riaditeľ' AS "Pozícia", email_riaditela AS "Email",
        telefon_riaditela AS "Telefon"
@@ -302,6 +320,7 @@ CREATE VIEW allEmployees AS
     FROM zamestnanec
     ORDER BY "Pozícia";
 
+--this view shows the reach employees
 CREATE VIEW najbohatejsieZamestnanci AS
     SELECT meno, priezvisko, pozicia, mesacny_plat
     FROM zamestnanec
@@ -309,6 +328,7 @@ CREATE VIEW najbohatejsieZamestnanci AS
         (SELECT MAX(sum)
         FROM platba);
 
+--this view shows sales before Robert Polak's employment 
 CREATE VIEW predajpredPolakom AS
     SELECT meno, priezvisko, kam, datum_platby
     FROM zakaznik
@@ -320,7 +340,8 @@ CREATE VIEW predajpredPolakom AS
         WHERE zamestnanec.meno = 'Robert' AND zamestnanec.priezvisko = 'Polak'
         );
 
---procedura
+--procedure
+--deletes the tour and all related records based on the customer's document number
 CREATE OR REPLACE PROCEDURE tura_id (doklad text)
      AS
     $$
@@ -341,8 +362,8 @@ CREATE OR REPLACE PROCEDURE tura_id (doklad text)
 
 call tura_id('985220/6056');
 
-
---funkcia
+--function 
+--returns the name of the director with the most employees
 CREATE OR REPLACE FUNCTION riaditel_ma_zamestnancov ()
     RETURNS text AS
     $$
@@ -358,3 +379,4 @@ CREATE OR REPLACE FUNCTION riaditel_ma_zamestnancov ()
     $$ language plpgsql;
 
 select riaditel_ma_zamestnancov();
+
