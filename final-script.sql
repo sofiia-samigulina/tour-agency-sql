@@ -245,18 +245,18 @@ EXECUTE FUNCTION changeDocuments();
 --creating views
 
 --this view shows who doesn't have any insurances
-CREATE VIEW bez_poistenia AS
-    SELECT meno, priezvisko, email
-    FROM zakaznik
-    WHERE poistenie IS NULL;
+CREATE VIEW any_insurances AS
+    SELECT name, surname, email
+    FROM clients
+    WHERE insurance IS NULL;
 
 --function
-CREATE OR REPLACE FUNCTION changeEmailsBezPoistenia()
+CREATE OR REPLACE FUNCTION changeEmailsAnyInsurances()
     RETURNS TRIGGER
     AS $$
         BEGIN
             IF NEW.email <> OLD.email THEN
-                UPDATE zakaznik
+                UPDATE clients
                 SET email = NEW.email
                 WHERE email = OLD.email;
             end if;
@@ -265,119 +265,121 @@ CREATE OR REPLACE FUNCTION changeEmailsBezPoistenia()
     $$LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_updateEmails
-INSTEAD OF UPDATE ON bez_poistenia
+INSTEAD OF UPDATE ON any_insurances
 FOR EACH ROW
-EXECUTE FUNCTION changeEmailsBezPoistenia();
+EXECUTE FUNCTION changeEmailsAnyInsurances();
 
 --this view shows how many days Samuel Novakov works in this company and his salary
 CREATE VIEW samuel_novakov AS
-    SELECT CONCAT (meno, ' ', priezvisko) AS "Meno", (CURRENT_DATE-zamestnanec.kedy_nastupil_doprace) AS "Dni pracovania", zamestnanec.mesacny_plat AS "Plat"
-    FROM zamestnanec
-    WHERE meno = 'Samuel' AND priezvisko = 'Novakov';
+    SELECT CONCAT (name, ' ', surname) AS "Name", (CURRENT_DATE-employees.date_employment) AS "Count of days", employees.salary AS "Salary"
+    FROM employees
+    WHERE name = 'Samuel' AND surname = 'Novakov';
 
 --this view shows who sold a trip to Amerika
-CREATE VIEW kto_predal_cestu_doAmeriky AS
-    SELECT meno AS "Meno pracovnika", priezvisko AS "Priezvisko pracovnika", email AS "email pracovnika", sum AS "Sum predaja"
-    FROM zamestnanec
-    JOIN tura t on zamestnanec.ID_zamestnanca = t.ID_zamestnanca
-    JOIN platba p on t.cislo_objednavky = p.cislo_objednavky
-    WHERE kam = 'Amerika';
+CREATE VIEW whoSoldTripToUSA AS
+    SELECT name AS "Name", surname AS "Surname", email AS "Email", total AS "Total Sales"
+    FROM employees
+    JOIN tours t on employees.employe_id = t.employe_id
+    JOIN payments p on t.order_number = p.order_number
+    WHERE journey_to = 'USA';
 
 --this view shows where people, who paid by the gift card, go
-CREATE VIEW darcekovy_preukaz AS
-    SELECT cislo_dokladu_zakaznika AS "Doklad" ,kam AS "Kam", sum AS "Price"
-    FROM tura
-    JOIN platba p on tura.cislo_objednavky = p.cislo_objednavky
-    WHERE p.cislo_darcekoveho_preukazu IS NOT NULL;
+CREATE VIEW gift_card_and_trips AS
+    SELECT client_doc_number AS "Document", journey_to AS "A person is going to", total AS "Price"
+    FROM tours
+    JOIN payments p on tours.order_number = p.order_number
+    WHERE p.gift_card_num IS NOT NULL;
 
 --this view shows all employees and the trips they sold (if any)
-CREATE VIEW pracovnici_predaj AS
-    SELECT meno,priezvisko, cislo_objednavky, kam
-    FROM zamestnanec
-    LEFT JOIN tura t on zamestnanec.ID_zamestnanca = t.ID_zamestnanca;
+CREATE VIEW employees_and_sales AS
+    SELECT name,surname, order_number, journey_to
+    FROM employees
+    LEFT JOIN tours t on employees.employe_id = t.employe_id;
 
 --this view shows sales total by year
-CREATE VIEW sum_roky AS
-    SELECT EXTRACT (YEAR from datum_platby) AS "Year", SUM(platba.sum)
-    FROM platba
+CREATE VIEW total_sales_by_year AS
+    SELECT EXTRACT (YEAR from payment_date) AS "Year", SUM(payments.total) AS "Total"
+    FROM payments
     GROUP BY "Year";
 
 --this view shows sales total by month
-CREATE VIEW mesiac_platby AS
-    SELECT EXTRACT(MONTH FROM datum_platby) AS "Mesiac", SUM(sum) AS "Sum"
-    FROM platba
-    GROUP BY EXTRACT(MONTH FROM datum_platby)
-    ORDER BY "Sum" DESC;
+CREATE VIEW total_sales_by_months AS
+    SELECT EXTRACT(MONTH FROM payment_date) AS "Month", SUM(payments.total) AS "Total"
+    FROM payments
+    GROUP BY EXTRACT(MONTH FROM payment_date)
+    ORDER BY "Total" DESC;
 
 --this view shows all employees with their contacts
 CREATE VIEW allEmployees AS
-    SELECT CONCAT(meno_riaditela, ' ', priezvisko_riaditela) AS "Meno", 'riaditeľ' AS "Pozícia", email_riaditela AS "Email",
-       telefon_riaditela AS "Telefon"
-    FROM oddelenie
+    SELECT CONCAT(name_dir, ' ', surname_dir) AS "Name", 'director' AS "Position", email_dir AS "Email",
+       phone_dir AS "Phone Number"
+    FROM departments
     UNION
-    SELECT CONCAT(meno, ' ', priezvisko) AS "Meno", pozicia AS "Pozícia", email AS "Email",
-       telefon AS "Telefon"
-    FROM zamestnanec
-    ORDER BY "Pozícia";
+    SELECT CONCAT(name, ' ', surname) AS "Name", position AS "Position", email AS "Email",
+       phone AS "Phone Number"
+    FROM employees
+    ORDER BY "Position";
 
---this view shows the reach employees
-CREATE VIEW najbohatejsieZamestnanci AS
-    SELECT meno, priezvisko, pozicia, mesacny_plat
-    FROM zamestnanec
-    WHERE mesacny_plat >
-        (SELECT MAX(sum)
-        FROM platba);
+--this view shows the reachest employees
+CREATE VIEW theReachestEmployees AS
+    SELECT name, surname, position, salary
+    FROM employees
+    WHERE salary >
+        (SELECT MAX(total)
+        FROM payments);
 
 --this view shows sales before Robert Polak's employment 
-CREATE VIEW predajpredPolakom AS
-    SELECT meno, priezvisko, kam, datum_platby
-    FROM zakaznik
-    INNER JOIN tura t on zakaznik.cislo_dokladu = t.cislo_dokladu_zakaznika
-    INNER JOIN platba p on t.cislo_objednavky = p.cislo_objednavky
-    WHERE datum_platby <
-        (SELECT kedy_nastupil_doprace
-        FROM zamestnanec
-        WHERE zamestnanec.meno = 'Robert' AND zamestnanec.priezvisko = 'Polak'
+CREATE VIEW salesBeforeEmployment AS
+    SELECT name, surname, journey_to, payment_date
+    FROM clients
+    INNER JOIN tours t on clients.document_number = t.client_doc_number
+    INNER JOIN payments p on t.order_number = p.order_number
+    WHERE payment_date <
+        (SELECT employment_date
+        FROM employees
+        WHERE employees.name = 'Robert' AND employees.surname = 'Polak'
         );
 
 --procedure
 --deletes the tour and all related records based on the customer's document number
-CREATE OR REPLACE PROCEDURE tura_id (doklad text)
+CREATE OR REPLACE PROCEDURE deleteTour (document text)
      AS
     $$
     DECLARE
-    objednavka int;
+    this_order int;
     BEGIN
-        select cislo_objednavky into objednavka
-        from tura
-        where cislo_dokladu_zakaznika = doklad;
-        delete from platba
-        where cislo_objednavky = objednavka;
-        delete from tura
-        where cislo_dokladu_zakaznika = doklad;
-        delete from zakaznik
-        where cislo_dokladu = doklad;
+        select order_number into this_order
+        from tours
+        where client_doc_number = document;
+
+        delete from payments
+        where order_number = this_order;
+        delete from tours
+        where client_doc_number = document;
+        delete from clients
+        where document_number = document;
     end;
     $$ language plpgsql;
 
-call tura_id('985220/6056');
+call deleteTour('985220/6056');
 
 --function 
 --returns the name of the director with the most employees
-CREATE OR REPLACE FUNCTION riaditel_ma_zamestnancov ()
+CREATE OR REPLACE FUNCTION directorHasEmployees ()
     RETURNS text AS
     $$
     DECLARE
-    meno varchar(100);
-    pocet int;
+    this_name varchar(100);
+    this_count int;
     BEGIN
-        select max(kolko_zamestnancov) into pocet from oddelenie;
-        select concat(meno_riaditela, ' ', priezvisko_riaditela) into meno from oddelenie
-            where kolko_zamestnancov = pocet;
-        return meno || ' má ' || pocet || ' zamestnancov';
+        select max(how_many_employees) into this_count from departments;
+        select concat(name_dir, ' ', surname_dir) into this_name from departments
+            where how_many_employees = this_count;
+        return this_name || ' has ' || this_count || ' employees';
     end;
     $$ language plpgsql;
 
-select riaditel_ma_zamestnancov();
+select directorHasEmployees();
+
 
 
