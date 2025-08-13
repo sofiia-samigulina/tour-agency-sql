@@ -152,7 +152,7 @@ EXECUTE FUNCTION set_order_num_payments();
 
 --inserts
 INSERT INTO clients
-    (name, surname, phone, email, birthday_date, date_first_purchase, insurance, how_heard_about_us, document_number, citizenship)
+    (name, surname, phone, email, birthday, date_first_purchase, insurance, how_heard_about_us, document_number, citizenship)
 VALUES
     ('Alexandra', 'Polakova', 0987236451, 'sandra.polakova@yahoo.com', '1976-10-10', '2024-12-05', 'VZP', NULL, '761010/8517', 'Slovakia'),
     ('Sonya', 'Migasova', 0959163544, 'sonya200397@gmail.com', '1997-03-20', '2024-12-10', NULL, 'Instagram', '975320/8756', 'Russia'),
@@ -186,11 +186,11 @@ VALUES
     ('Samuel','Novakov', 'Accountant', 0919654321, 'samuel.novakov@outlook.com', 1041, 104, NULL, '2024-12-18', 1050, 'yes'),
     ('Norbert', 'Kovac', 'Tour Sales Agent', 0910234567, 'norbert.kovac@outlook.com', 1013, 101, 'Sales Management', '2025-01-03', 1450, 'yes'),
     ('Robert', 'Polak', 'Tour Sales Agent', 0911987654, 'robert.polak@outlook.com', 1014, 101, 'Sales Management', '2025-01-03', 1400, 'no'),
-    ('Samuel', 'Bechera', 'frontend developer', 0902987654, 'samuel.bechera@outlook,com', 1001, 100, 'Informatics', '2025-01-10', 2500, NULL),
+    ('Samuel', 'Bechera', 'frontend developer', 0902987654, 'samuel.bechera@outlook.com', 1001, 100, 'Informatics', '2025-01-10', 2500, NULL),
     ('Michal', 'Vadimov', 'online supporter', 0948234567, 'michal.vadimov@outlook.com', 1032, 103, 'Veterinary Science', '2025-01-16', 1200, NULL),
     ('Richard', 'Polarik', 'Telemarketing Specialist', 0940678901, 'richard.polarik@outlook.com',1022, 102, NULL, '2025-01-17', 1350, 'no'),
     ('Dusan', 'Ambros', 'QR engineer', 0903456789, 'dusan.ambros@outlook.com', 1002, 100, NULL, '2024-01-19', 1850, 'yes'),
-    ('Anya', 'Kirsanova', 'social media manager', 0918987654, 'anya.kirsanova@outlook.com', 1023, 101, 'Reklama a marketing', '2025-01-21', 1300, NULL),
+    ('Anya', 'Kirsanova', 'social media manager', 0918987654, 'anya.kirsanova@outlook.com', 1023, 101, 'Advertising a marketing', '2025-01-21', 1300, NULL),
     ('Kristina', 'Odincova','Sales Analyst', 0917234567, 'kristina.odincova@outlook.com', 1017, 101, 'Data Analyst', '2025-01-25', 1500, 'yes'),
     ('Ivana', 'Kovacova', 'Accountant', 0902789012, 'ivana.kovacova@outlook.com', 1042, 104, 'Finance Management', '2025-02-05', 1050, NULL),
     ('Sofiia', 'Samigulina', 'Database Administrator', 0901234567, 'sofiia.samigulina@outlook.com', 1003, 100, 'Informatics', '2025-02-05',  1600, NULL);
@@ -380,6 +380,7 @@ CREATE OR REPLACE FUNCTION directorHasEmployees ()
     $$ language plpgsql;
 
 select directorHasEmployees();
+
 
 
 
