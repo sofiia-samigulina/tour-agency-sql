@@ -335,7 +335,7 @@ CREATE VIEW salesBeforeEmployment AS
     INNER JOIN tours t on clients.document_number = t.client_doc_number
     INNER JOIN payments p on t.order_number = p.order_number
     WHERE payment_date <
-        (SELECT employment_date
+        (SELECT date_employment
         FROM employees
         WHERE employees.name = 'Robert' AND employees.surname = 'Polak'
         );
@@ -380,6 +380,7 @@ CREATE OR REPLACE FUNCTION directorHasEmployees ()
     $$ language plpgsql;
 
 select directorHasEmployees();
+
 
 
 
